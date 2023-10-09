@@ -24,7 +24,17 @@ public class Obstacle : MonoBehaviour
 
     public void IsHittedFrom(Vector2Int direction)
     {
-        return;
+        if (id == 1)
+        {
+            return;
+        } else if (id == 2)
+        {
+            Destroy(this.gameObject);
+            FindObjectOfType<GridManager>().GetComponent<GridManager>().ClearCellAt(gridPosition);
+        } else if (id == 3)
+        {
+            Debug.Log("Win!");
+        }
     }
 
     public bool WillStopPlayer()

@@ -377,14 +377,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.56201124, y: 0, z: 0, w: 0.82712966}
-  m_LocalPosition: {x: -1.2400002, y: 6.99, z: -1.27}
+  m_LocalRotation: {x: 0.39740196, y: -0.58486897, z: 0.39740196, w: 0.58486897}
+  m_LocalPosition: {x: 4.57, y: 6.99, z: 4.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 68.39, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 68.39, y: -90, z: 0}
 --- !u!1 &1147165068
 GameObject:
   m_ObjectHideFlags: 0
@@ -547,9 +547,11 @@ MonoBehaviour:
   cols: 10
   cellSize: 1
   startingObject: {fileID: 1147165069}
-  startingPoint: {x: 0, y: 0, z: 0}
   prefabs:
   - {fileID: 7272620842812044219, guid: 0b56d9afa1eaf42008f2dee43fdcd3cb, type: 3}
+  - {fileID: 7272620842812044219, guid: 9e67445566f0c4be2801ae0a7e18f93f, type: 3}
+  - {fileID: 7272620842812044219, guid: 1dc13aac3986744ed9d96eebe603ca4c, type: 3}
+  moveSpeed: 0.5
   csvFile: {fileID: 4900000, guid: 5053c020a4874429b9af9bb50f129584, type: 3}
   playerPrefab: {fileID: 7272620842812044219, guid: 339cb0af40eec498f819423771863052, type: 3}
 --- !u!4 &1554197925

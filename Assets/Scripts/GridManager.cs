@@ -8,8 +8,11 @@ public class GridManager : MonoBehaviour
     public int cols = 10;
     public float cellSize = 1.0f;
     public Transform startingObject;
-    public Vector3 startingPoint; // 网格的起始位置
+    private Vector3 startingPoint; // 网格的起始位置
     public GameObject[] prefabs; // 存储所有 Prefab 的数组
+
+    public float moveSpeed = 5f;
+    public float tolerance = 0.1f;
 
     private int[,] gridData;
 
@@ -17,7 +20,9 @@ public class GridManager : MonoBehaviour
 
 
     public GameObject playerPrefab; // 玩家Prefab
+
     private Vector2Int playerPosition; // 玩家在网格中的位置
+    private GameObject gridCanvas;
 
     private PlayerController player; // 玩家引用
 
@@ -26,6 +31,8 @@ public class GridManager : MonoBehaviour
     void Start()
     {
         startingPoint = startingObject.position;
+
+        gridCanvas = GameObject.Find("GridCanvas");
 
         // 从.csv文件读取网格数据
         LoadGridDataFromCSV();
@@ -58,6 +65,9 @@ public class GridManager : MonoBehaviour
         rows = lines.Length;
         cols = lines[0].Split(',').Length;
 
+        SpriteRenderer _canvasRenderer = gridCanvas.GetComponent<SpriteRenderer>();
+        _canvasRenderer.size = new Vector2(rows, cols);
+
         gridData = new int[rows, cols];
 
         for (int i = 0; i < rows; i++)
@@ -87,19 +97,20 @@ public class GridManager : MonoBehaviour
                 if (gridData[i, j] != 0 && gridData[i, j] != 1001)
                 {
                     int prefabIndex = gridData[i, j] - 1; // 因为gridData中的1对应prefabs的第0个元素，2对应第1个元素，以此类推
-                    Vector3 cellPosition = offset + new Vector3(j * cellSize, 0, i * cellSize);
-                    GameObject _obstacle = Instantiate(prefabs[prefabIndex], cellPosition, Quaternion.identity, transform);
-                    _obstacle.GetComponent<Obstacle>().gridPosition = new Vector2Int(i,j);
-                    activeObstacles.Add(new Vector2Int(i,j), _obstacle);
+                    Vector3 cellPosition = offset + new Vector3(i * cellSize, 0, j * cellSize);
+                    Obstacle _obstacle = Instantiate(prefabs[prefabIndex], cellPosition, Quaternion.identity, transform).GetComponent<Obstacle>();
+                    _obstacle.gridPosition = new Vector2Int(i,j);
+                    _obstacle.id = gridData[i, j];
+                    activeObstacles.Add(new Vector2Int(i,j), _obstacle.gameObject);
                 }
                 else if (gridData[i, j] == 1001)
                 {
-                    Vector3 worldPos = GetWorldPositionFromGridPosition(j, i);
+                    Vector3 worldPos = GetWorldPositionFromGridPosition(i, j);
                     player = Instantiate(playerPrefab, worldPos, Quaternion.identity).GetComponent<PlayerController>();
                     player.gridManager = this;
 
                     gridData[i, j] = 0;
-                    playerPosition = new Vector2Int(j, i);
+                    playerPosition = new Vector2Int(i, j);
                     player.goalPlayerPosition = playerPosition;
                     player.goalPlayerPosVector3 = worldPos;
 
@@ -115,33 +126,36 @@ public class GridManager : MonoBehaviour
 
         //RaycastHit hit;
         //bool hasObstacle = false;
+        Vector2Int currentPosition = playerPosition;
 
-        for (int x = playerPosition.y; x >= 0 && x < rows; x += direction.x)
+        while (currentPosition.x >= 0 && currentPosition.x < rows && currentPosition.y >= 0 && currentPosition.y < cols)
         {
-            for (int y = playerPosition.x; y >= 0 && y < cols; y += direction.y)
+            if (gridData[currentPosition.x, currentPosition.y] != 0)
             {
-                if (gridData[x,y] != 0)
+                if (activeObstacles.TryGetValue(currentPosition, out GameObject obstacle))
                 {
+                    obstacle.GetComponent<Obstacle>().IsHittedFrom(direction);
 
-                    if (activeObstacles.TryGetValue(new Vector2Int(x,y), out GameObject obstacle)) {
-
-                        obstacle.GetComponent<Obstacle>().IsHittedFrom(direction);
-
-                        if (obstacle.GetComponent<Obstacle>().WillStopPlayer())
-                        {
-
-                            break;
-                        }
+                    if (obstacle.GetComponent<Obstacle>().WillStopPlayer())
+                    {
+                        break;
                     }
-
                 }
-
-                playerPosition = new Vector2Int(x + direction.x, y + direction.y);
             }
+
+            playerPosition = currentPosition; // update the player's position
+            currentPosition += direction; // move to the next position based on the direction
         }
+
 
         return playerPosition;
 
+    }
+
+    public void ClearCellAt(Vector2Int position)
+    {
+        gridData[position.x, position.y] = 0;
+        activeObstacles.Remove(position);
     }
 
 }
