@@ -14,7 +14,7 @@ mergeInto(LibraryManager.library, {
         reader.onload = function() {
             var combinedString = fileName + "|" + reader.result;
             // 将文件名和文件内容传递给 Unity
-            Module.SendMessage('YourGameObjectName', 'OnFileUploaded', combinedString);
+            Module.SendMessage('PlayerSettings', 'OnFileUploaded', combinedString);
         };
     }
     

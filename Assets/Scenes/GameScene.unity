@@ -1339,7 +1339,7 @@ MonoBehaviour:
   - {fileID: 7272620842812044219, guid: 9e67445566f0c4be2801ae0a7e18f93f, type: 3}
   - {fileID: 7272620842812044219, guid: 1dc13aac3986744ed9d96eebe603ca4c, type: 3}
   playerPrefab: {fileID: 7272620842812044219, guid: 339cb0af40eec498f819423771863052, type: 3}
-  moveSpeed: 0.5
+  moveSpeed: 2
   tolerance: 2
   remainingMoves: 10
   remainHudText: {fileID: 177896773}
