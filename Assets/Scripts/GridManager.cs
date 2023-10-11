@@ -1,41 +1,56 @@
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GridManager : MonoBehaviour
 {
+    [Header("=== Grid ===")]
     public int rows = 10;
     public int cols = 10;
     public float cellSize = 1.0f;
     public Transform startingObject;
-    private Vector3 startingPoint; // 网格的起始位置
-    public GameObject[] prefabs; // 存储所有 Prefab 的数组
 
+    private Vector3 startingPoint; // 网格的起始位置
+
+    [Header("=== Prefabs ===")]
+    public GameObject[] obstaclePrefabs; // 存储所有 Prefab 的数组
+    public GameObject playerPrefab; // 玩家Prefab
+
+
+    [Header("=== Play Settings ===")]
     public float moveSpeed = 5f;
     public float tolerance = 0.1f;
+    public int remainingMoves;
 
     private int[,] gridData;
 
-    public TextAsset csvFile; // 指定的.csv文件
+    //[Header("=== Data ===")]
+    //public TextAsset csvFile; // 指定的.csv文件
 
 
-    public GameObject playerPrefab; // 玩家Prefab
+    [Header("=== UI ===")]
+    public TextMeshPro remainHudText;
+    public TextMeshPro winHudText;
 
-    private Vector2Int playerPosition; // 玩家在网格中的位置
+
+
     private GameObject gridCanvas;
 
-    private PlayerController player; // 玩家引用
 
     private Dictionary<Vector2Int, GameObject> activeObstacles = new Dictionary<Vector2Int, GameObject>();
 
     void Start()
     {
         startingPoint = startingObject.position;
+        remainingMoves = FindObjectOfType<PlayerSettings>().PlayerRemainSteps;
 
         gridCanvas = GameObject.Find("GridCanvas");
 
         // 从.csv文件读取网格数据
-        LoadGridDataFromCSV();
+        //LoadGridDataFromCSV();
+        LoadGridDataFromCSV(FindObjectOfType<PlayerSettings>().csvData);
 
         // 根据网格数据创建网格
         CreateGrid();
@@ -57,10 +72,9 @@ public class GridManager : MonoBehaviour
     }
 
 
-    void LoadGridDataFromCSV()
+    void LoadGridDataFromCSV(string csvText)
     {
-        // 使用换行符分隔每一行
-        string[] lines = csvFile.text.Split('\n');
+        string[] lines = csvText.Split('\n');
 
         rows = lines.Length;
         cols = lines[0].Split(',').Length;
@@ -98,7 +112,7 @@ public class GridManager : MonoBehaviour
                 {
                     int prefabIndex = gridData[i, j] - 1; // 因为gridData中的1对应prefabs的第0个元素，2对应第1个元素，以此类推
                     Vector3 cellPosition = offset + new Vector3(i * cellSize, 0, j * cellSize);
-                    Obstacle _obstacle = Instantiate(prefabs[prefabIndex], cellPosition, Quaternion.identity, transform).GetComponent<Obstacle>();
+                    Obstacle _obstacle = Instantiate(obstaclePrefabs[prefabIndex], cellPosition, Quaternion.identity, transform).GetComponent<Obstacle>();
                     _obstacle.gridPosition = new Vector2Int(i,j);
                     _obstacle.id = gridData[i, j];
                     activeObstacles.Add(new Vector2Int(i,j), _obstacle.gameObject);
@@ -106,11 +120,13 @@ public class GridManager : MonoBehaviour
                 else if (gridData[i, j] == 1001)
                 {
                     Vector3 worldPos = GetWorldPositionFromGridPosition(i, j);
-                    player = Instantiate(playerPrefab, worldPos, Quaternion.identity).GetComponent<PlayerController>();
+                    PlayerController player = Instantiate(playerPrefab, worldPos, Quaternion.identity).GetComponent<PlayerController>();
                     player.gridManager = this;
 
                     gridData[i, j] = 0;
-                    playerPosition = new Vector2Int(i, j);
+
+
+                    Vector2Int playerPosition = new Vector2Int(i, j);
                     player.goalPlayerPosition = playerPosition;
                     player.goalPlayerPosVector3 = worldPos;
 
@@ -120,13 +136,15 @@ public class GridManager : MonoBehaviour
     }
 
 
-    public Vector2Int TryMovePlayer(Vector2Int direction)
+    public Vector2Int TryMovePlayer(Vector2Int direction, Vector2Int playerPosition)
     {
         //Vector3 moveDirection = new Vector3(direction.y, 0, direction.x); // 注意：这里的x和y需要交换，因为我们在一个水平的网格上
 
         //RaycastHit hit;
         //bool hasObstacle = false;
+
         Vector2Int currentPosition = playerPosition;
+        //gridData[currentPosition.x, currentPosition.y] = 0;
 
         while (currentPosition.x >= 0 && currentPosition.x < rows && currentPosition.y >= 0 && currentPosition.y < cols)
         {
@@ -143,8 +161,11 @@ public class GridManager : MonoBehaviour
                 }
             }
 
+            //gridData[currentPosition.x, currentPosition.y] = 1001;
+
             playerPosition = currentPosition; // update the player's position
             currentPosition += direction; // move to the next position based on the direction
+
         }
 
 
@@ -158,4 +179,21 @@ public class GridManager : MonoBehaviour
         activeObstacles.Remove(position);
     }
 
+    public void BackToSetting()
+    {
+        SceneManager.LoadScene(1);
+    }
+
+    public void RestartLevel()
+    {
+        //Debug.Log("Back to settings!");
+        SceneManager.LoadScene(2);
+    }
+
+    public void PlayerWin()
+    {
+        remainHudText.gameObject.SetActive(false);
+        winHudText.gameObject.SetActive(true);
+
+    }
 }

@@ -33,7 +33,11 @@ public class Obstacle : MonoBehaviour
             FindObjectOfType<GridManager>().GetComponent<GridManager>().ClearCellAt(gridPosition);
         } else if (id == 3)
         {
-            Debug.Log("Win!");
+            FindObjectOfType<GridManager>().GetComponent<GridManager>().PlayerWin();
+            foreach (PlayerController item in FindObjectsOfType<PlayerController>())
+            {
+                item.remainingMoves = 10000;
+            }
         }
     }
 
